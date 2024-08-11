@@ -13,3 +13,16 @@ export const postReviwe = (req: Request, res: Response) => {
         res.send("Review posted successfully");
     });
 }
+export const deleteReview = (req: Request, res: Response) => {
+    const { revId } = req.params;
+    const sql = `DELETE FROM reviews WHERE id =?;`;
+    db.query(sql, [revId], (err: QueryError | null, results: RowDataPacket[], fields: FieldPacket[]) => {
+        if (err) {
+            console.error("Error deleting review:", err);
+            res.status(500).send("Server error");
+            return;
+        }
+        res.send("Review deleted successfully");
+    });
+
+ }
