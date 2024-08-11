@@ -69,7 +69,7 @@ export const login = async (
 //   }
 // };
 export const register = async (req: Request, res: Response): Promise<void> => {
-  const {
+  let {
     username,
     password,
     first_name,
@@ -80,6 +80,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     address,
     price,
     summary,
+    avatar_img,
   } = req.body;
 
   let responseSent = false; // Флаг для отслеживания отправки ответа
@@ -136,6 +137,14 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         ]);
 
       const userId = userResult.insertId;
+      if (avatar_img) {
+        const sqlAddImg = `UPDATE users SET avatar_img =? WHERE ID =?`;
+        await db.promise().query(sqlAddImg, [avatar_img, userId]);
+      } else {
+        avatar_img = "https://i.pravatar.cc/150?img=" + userId;
+        const sqlAddImg = `UPDATE users SET avatar_img = ? WHERE ID =?`;
+        await db.promise().query(sqlAddImg, [avatar_img, userId]);
+      }
 
       if (role === "client") {
         const clientInsertQuery = `
