@@ -25,7 +25,7 @@ async function main() {
     if (err) throw err;
     console.log("Connected to MySQL database");
 
-    // app.use("/api/user", userRoutes);
+    app.use("/api/user", userRoutes);
 
     app.use("/api/cleaners", cleanersRoutes);
   });
