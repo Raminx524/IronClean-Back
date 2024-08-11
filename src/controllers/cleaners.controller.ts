@@ -4,10 +4,12 @@ import { RowDataPacket, QueryError, FieldPacket } from "mysql2";
 
 export const getAllCleaners = (req: Request, res: Response): void => {
   const sql = `
-    SELECT users.ID, Username, role, First_name, Last_name, Email, Phone_number, cleaners.user_id, Price, Summary
+    SELECT users.ID, Username, role, First_name, Last_name, Email, Phone_number, cleaners.user_id, Price, Summary, AVG(reviews.Rating) as avg_rating
     FROM cleaners 
     JOIN users ON users.ID = cleaners.user_id 
-    WHERE users.role = "cleaner";
+    LEFT JOIN reviews ON reviews.Posted_ID = users.ID
+    WHERE users.role = "cleaner"
+    GROUP BY users.ID;
   `;
 
   db.query(sql, (err: QueryError | null, results: RowDataPacket[], fields: FieldPacket[]) => {
@@ -23,10 +25,12 @@ export const getAllCleaners = (req: Request, res: Response): void => {
 export const getCleanerById = (req: Request, res: Response): void => {
   const id = req.params.id;
   const sql = `
-    SELECT users.ID, Username, role, First_name, Last_name, Email, Phone_number, cleaners.user_id, Price, Summary
+    SELECT users.ID, Username, role, First_name, Last_name, Email, Phone_number, cleaners.user_id, Price, Summary, AVG(reviews.Rating) as avg_rating
     FROM cleaners 
     JOIN users ON users.ID = cleaners.user_id 
-    WHERE users.role = "cleaner" AND user_id = ?;
+    LEFT JOIN reviews ON reviews.Posted_ID = users.ID
+    WHERE users.role = "cleaner" AND user_id = ?
+    GROUP BY users.ID;
   `;
 
   db.query(sql, [id], (err: QueryError | null, result: RowDataPacket[], fields: FieldPacket[]) => {
@@ -45,7 +49,12 @@ export const getCleanerById = (req: Request, res: Response): void => {
 
 export const getReviewsByCleanerId = (req: Request, res: Response): void => {
   const id = req.params.id;
-  const sql = 'SELECT * FROM reviews WHERE Posted_ID = ?;';
+  const sql = `
+    SELECT reviews.*, AVG(reviews.Rating) as avg_rating
+    FROM reviews 
+    WHERE Posted_ID = ?
+    GROUP BY Posted_ID;
+  `;
   db.query(sql, [id], (err: QueryError | null, results: RowDataPacket[], fields: FieldPacket[]) => {
     if (err) {
       console.error('Error fetching reviews by cleaner id:', err);
@@ -58,7 +67,13 @@ export const getReviewsByCleanerId = (req: Request, res: Response): void => {
 
 export const getReservationsByCleanerId = (req: Request, res: Response): void => {
   const id = req.params.id;
-  const sql =' SELECT * FROM reservations WHERE cleaner_id = ?;';
+  const sql = `
+    SELECT reservations.*, AVG(reviews.Rating) as avg_rating
+    FROM reservations
+    LEFT JOIN reviews ON reviews.Posted_ID = reservations.cleaner_id
+    WHERE cleaner_id = ?
+    GROUP BY reservations.cleaner_id;
+  `;
   db.query(sql, [id], (err: QueryError | null, results: RowDataPacket[], fields: FieldPacket[]) => {
     if (err) {
       console.error('Error fetching reservations by cleaner id:', err);
@@ -74,7 +89,7 @@ export const get5TopCleaners = (req: Request, res: Response): void => {
     SELECT users.ID, Username, role, First_name, Last_name, Email, Phone_number, AVG(reviews.Rating) as avg_rating 
     FROM users 
     JOIN cleaners ON users.ID = cleaners.user_id 
-    JOIN reviews ON reviews.Posted_ID = users.ID 
+    LEFT JOIN reviews ON reviews.Posted_ID = users.ID 
     WHERE users.role = "cleaner" 
     GROUP BY users.ID 
     ORDER BY avg_rating DESC 
