@@ -12,6 +12,6 @@ cleanersRoutes.get('/:id/reviews', getReviewsByCleanerId)
 cleanersRoutes.get('/:id/reservations', getReservationsByCleanerId) 
 cleanersRoutes.post('/:id/reservations', addReservation)
 cleanersRoutes.post('/:id/review', postReviwe)
-cleanersRoutes.delete('/:id/review/:revId',verifyToken, deleteReview)
+cleanersRoutes.delete('/:id/review/:revId',verifyToken ,deleteReview)
 
 export default cleanersRoutes;

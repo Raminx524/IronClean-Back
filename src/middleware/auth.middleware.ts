@@ -44,7 +44,6 @@ function verifyToken(req: AuthRequest, res: Response, next: NextFunction) {
     return res.status(401).json({ error: "Invalid token" });
   }
 }
-
 // async function authorizeBusinessOwner(
 //   req: AuthRequest,
 //   res: Response,
