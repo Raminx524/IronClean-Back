@@ -4,7 +4,7 @@ import { RowDataPacket, QueryError, FieldPacket } from "mysql2";
 
 export const getAllCleaners = (req: Request, res: Response): void => {
   const sql = `
-    SELECT users.ID, Username, role, First_name, Last_name, Email, Phone_number, cleaners.user_id, Price, Summary, AVG(reviews.Rating) as avg_rating
+    SELECT users.ID, Username, role, First_name, Last_name, Email, Phone_number,avatar_img ,cleaners.user_id, Price, Summary, AVG(reviews.Rating) as avg_rating
     FROM cleaners 
     JOIN users ON users.ID = cleaners.user_id 
     LEFT JOIN reviews ON reviews.Posted_ID = users.ID
@@ -25,7 +25,7 @@ export const getAllCleaners = (req: Request, res: Response): void => {
 export const getCleanerById = (req: Request, res: Response): void => {
   const id = req.params.id;
   const sql = `
-    SELECT users.ID, Username, role, First_name, Last_name, Email, Phone_number, cleaners.user_id, Price, Summary, AVG(reviews.Rating) as avg_rating
+    SELECT users.ID,avatar_img, Username, role, First_name, Last_name, Email, Phone_number, cleaners.user_id, Price, Summary, AVG(reviews.Rating) as avg_rating
     FROM cleaners 
     JOIN users ON users.ID = cleaners.user_id 
     LEFT JOIN reviews ON reviews.Posted_ID = users.ID
@@ -86,7 +86,7 @@ export const getReservationsByCleanerId = (req: Request, res: Response): void =>
 
 export const get5TopCleaners = (req: Request, res: Response): void => {
   const sql = `
-    SELECT users.ID, Username, role, First_name, Last_name, Email, Phone_number, AVG(reviews.Rating) as avg_rating 
+    SELECT users.ID,avatar_img, Username, role, First_name, Last_name, Email, Phone_number, cleaners.Price, AVG(reviews.Rating) as avg_rating 
     FROM users 
     JOIN cleaners ON users.ID = cleaners.user_id 
     LEFT JOIN reviews ON reviews.Posted_ID = users.ID 
