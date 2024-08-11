@@ -12,14 +12,21 @@ export const getAllCleaners = (req: Request, res: Response): void => {
     GROUP BY users.ID;
   `;
 
-  db.query(sql, (err: QueryError | null, results: RowDataPacket[], fields: FieldPacket[]) => {
-    if (err) {
-      console.error("Error fetching cleaners:", err);
-      res.status(500).send("Server error");
-      return;
+  db.query(
+    sql,
+    (
+      err: QueryError | null,
+      results: RowDataPacket[],
+      fields: FieldPacket[]
+    ) => {
+      if (err) {
+        console.error("Error fetching cleaners:", err);
+        res.status(500).send("Server error");
+        return;
+      }
+      res.status(200).json(results);
     }
-    res.status(200).json(results);
-  });
+  );
 };
 
 export const getCleanerById = (req: Request, res: Response): void => {
@@ -33,38 +40,57 @@ export const getCleanerById = (req: Request, res: Response): void => {
     GROUP BY users.ID;
   `;
 
-  db.query(sql, [id], (err: QueryError | null, result: RowDataPacket[], fields: FieldPacket[]) => {
-    if (err) {
-      console.error('Error fetching cleaner by id:', err);
-      res.status(500).send('Server error');
-      return;
+  db.query(
+    sql,
+    [id],
+    (
+      err: QueryError | null,
+      result: RowDataPacket[],
+      fields: FieldPacket[]
+    ) => {
+      if (err) {
+        console.error("Error fetching cleaner by id:", err);
+        res.status(500).send("Server error");
+        return;
+      }
+      if (result.length === 0) {
+        res.status(404).send("Cleaner not found");
+        return;
+      }
+      res.status(200).json(result[0]);
     }
-    if (result.length === 0) {
-      res.status(404).send('Cleaner not found');
-      return;
-    }
-    res.status(200).json(result[0]);
-  });
+  );
 };
 
 export const getReviewsByCleanerId = (req: Request, res: Response): void => {
   const id = req.params.id;
   const sql = `
-    SELECT reviews.*
-    FROM reviews 
+    SELECT reviews.*,users.Username,users.avatar_img FROM reviews 
+    JOIN users ON users.ID=reviews.Poster_ID
     WHERE Posted_ID = ?;
   `;
-  db.query(sql, [id], (err: QueryError | null, results: RowDataPacket[], fields: FieldPacket[]) => {
-    if (err) {
-      console.error('Error fetching reviews by cleaner id:', err);
-      res.status(500).send('Server error');
-      return;
+  db.query(
+    sql,
+    [id],
+    (
+      err: QueryError | null,
+      results: RowDataPacket[],
+      fields: FieldPacket[]
+    ) => {
+      if (err) {
+        console.error("Error fetching reviews by cleaner id:", err);
+        res.status(500).send("Server error");
+        return;
+      }
+      res.status(200).json(results);
     }
-    res.status(200).json(results);
-  });
+  );
 };
 
-export const getReservationsByCleanerId = (req: Request, res: Response): void => {
+export const getReservationsByCleanerId = (
+  req: Request,
+  res: Response
+): void => {
   const id = req.params.id;
   const sql = `
     SELECT reservations.*, AVG(reviews.Rating) as avg_rating
@@ -73,14 +99,22 @@ export const getReservationsByCleanerId = (req: Request, res: Response): void =>
     WHERE cleaner_id = ?
     GROUP BY reservations.cleaner_id;
   `;
-  db.query(sql, [id], (err: QueryError | null, results: RowDataPacket[], fields: FieldPacket[]) => {
-    if (err) {
-      console.error('Error fetching reservations by cleaner id:', err);
-      res.status(500).send('Server error');
-      return;
+  db.query(
+    sql,
+    [id],
+    (
+      err: QueryError | null,
+      results: RowDataPacket[],
+      fields: FieldPacket[]
+    ) => {
+      if (err) {
+        console.error("Error fetching reservations by cleaner id:", err);
+        res.status(500).send("Server error");
+        return;
+      }
+      res.status(200).json(results);
     }
-    res.status(200).json(results);
-  });
+  );
 };
 
 export const get5TopCleaners = (req: Request, res: Response): void => {
@@ -95,12 +129,19 @@ export const get5TopCleaners = (req: Request, res: Response): void => {
     LIMIT 5;
   `;
 
-  db.query(sql, (err: QueryError | null, results: RowDataPacket[], fields: FieldPacket[]) => {
-    if (err) {
-      console.error('Error fetching top 5 cleaners:', err);
-      res.status(500).send('Server error');
-      return;
+  db.query(
+    sql,
+    (
+      err: QueryError | null,
+      results: RowDataPacket[],
+      fields: FieldPacket[]
+    ) => {
+      if (err) {
+        console.error("Error fetching top 5 cleaners:", err);
+        res.status(500).send("Server error");
+        return;
+      }
+      res.status(200).json(results);
     }
-    res.status(200).json(results);
-  });
+  );
 };
