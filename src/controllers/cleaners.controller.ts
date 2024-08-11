@@ -3,7 +3,12 @@ import { Request, Response } from "express";
 import { RowDataPacket, QueryError, FieldPacket } from "mysql2";
 
 export const getAllCleaners = (req: Request, res: Response): void => {
-  const sql = 'SELECT * FROM cleaners JOIN users ON users.ID = cleaners.user_id WHERE users.role = "cleaner";';
+  const sql = `
+    SELECT users.ID, Username, role, First_name, Last_name, Email, Phone_number, cleaners.user_id, Price, Summary
+    FROM cleaners 
+    JOIN users ON users.ID = cleaners.user_id 
+    WHERE users.role = "cleaner";
+  `;
 
   db.query(sql, (err: QueryError | null, results: RowDataPacket[], fields: FieldPacket[]) => {
     if (err) {
@@ -17,7 +22,12 @@ export const getAllCleaners = (req: Request, res: Response): void => {
 
 export const getCleanerById = (req: Request, res: Response): void => {
   const id = req.params.id;
-  const sql = `SELECT * FROM cleaners JOIN users ON users.ID = cleaners.user_id WHERE users.role = "cleaner" AND user_id = ?;`;
+  const sql = `
+    SELECT users.ID, Username, role, First_name, Last_name, Email, Phone_number, cleaners.user_id, Price, Summary
+    FROM cleaners 
+    JOIN users ON users.ID = cleaners.user_id 
+    WHERE users.role = "cleaner" AND user_id = ?;
+  `;
 
   db.query(sql, [id], (err: QueryError | null, result: RowDataPacket[], fields: FieldPacket[]) => {
     if (err) {
@@ -35,7 +45,7 @@ export const getCleanerById = (req: Request, res: Response): void => {
 
 export const getReviewsByCleanerId = (req: Request, res: Response): void => {
   const id = req.params.id;
-  const sql = `SELECT * FROM reviews WHERE Posted_ID =?;`;
+  const sql = 'SELECT * FROM reviews WHERE Posted_ID = ?;';
   db.query(sql, [id], (err: QueryError | null, results: RowDataPacket[], fields: FieldPacket[]) => {
     if (err) {
       console.error('Error fetching reviews by cleaner id:', err);
@@ -44,11 +54,11 @@ export const getReviewsByCleanerId = (req: Request, res: Response): void => {
     }
     res.status(200).json(results);
   });
-}
+};
 
 export const getReservationsByCleanerId = (req: Request, res: Response): void => {
   const id = req.params.id;
-  const sql = `SELECT * FROM reservations WHERE cleaner_id =?;`;
+  const sql =' SELECT * FROM reservations WHERE cleaner_id = ?;';
   db.query(sql, [id], (err: QueryError | null, results: RowDataPacket[], fields: FieldPacket[]) => {
     if (err) {
       console.error('Error fetching reservations by cleaner id:', err);
@@ -57,4 +67,26 @@ export const getReservationsByCleanerId = (req: Request, res: Response): void =>
     }
     res.status(200).json(results);
   });
-}
+};
+
+export const get5TopCleaners = (req: Request, res: Response): void => {
+  const sql = `
+    SELECT users.ID, Username, role, First_name, Last_name, Email, Phone_number, AVG(reviews.Rating) as avg_rating 
+    FROM users 
+    JOIN cleaners ON users.ID = cleaners.user_id 
+    JOIN reviews ON reviews.Posted_ID = users.ID 
+    WHERE users.role = "cleaner" 
+    GROUP BY users.ID 
+    ORDER BY avg_rating DESC 
+    LIMIT 5;
+  `;
+
+  db.query(sql, (err: QueryError | null, results: RowDataPacket[], fields: FieldPacket[]) => {
+    if (err) {
+      console.error('Error fetching top 5 cleaners:', err);
+      res.status(500).send('Server error');
+      return;
+    }
+    res.status(200).json(results);
+  });
+};
