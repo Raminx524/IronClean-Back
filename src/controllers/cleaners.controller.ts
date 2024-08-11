@@ -50,10 +50,9 @@ export const getCleanerById = (req: Request, res: Response): void => {
 export const getReviewsByCleanerId = (req: Request, res: Response): void => {
   const id = req.params.id;
   const sql = `
-    SELECT reviews.*, AVG(reviews.Rating) as avg_rating
+    SELECT reviews.*
     FROM reviews 
-    WHERE Posted_ID = ?
-    GROUP BY Posted_ID;
+    WHERE Posted_ID = ?;
   `;
   db.query(sql, [id], (err: QueryError | null, results: RowDataPacket[], fields: FieldPacket[]) => {
     if (err) {
