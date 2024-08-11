@@ -16,6 +16,7 @@ interface DecodedToken {
 }
 function verifyToken(req: AuthRequest, res: Response, next: NextFunction) {
   const authHeader = req.header("Authorization") || req.header("authorization");
+  console.log(authHeader);
   if (!authHeader) {
     return res.status(401).json({ error: "Access denied" });
   }
@@ -36,6 +37,7 @@ function verifyToken(req: AuthRequest, res: Response, next: NextFunction) {
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as DecodedToken; // Verify token
     req.userId = decoded.userId; // Add userId to request object
+
     next(); // Call next middleware
   } catch (error) {
     console.error(error);

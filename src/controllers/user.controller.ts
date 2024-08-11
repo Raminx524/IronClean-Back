@@ -7,6 +7,7 @@ import { MongoError } from "mongodb";
 import { AuthRequest } from "../middleware/auth.middleware";
 import { Error } from "mongoose";
 import { db } from "../app";
+import { RowDataPacket } from "mysql2";
 
 dotenv.config();
 const { JWT_SECRET } = process.env;
@@ -19,7 +20,6 @@ export const login = async (
   try {
     const { username, password } = req.body;
 
-    // Поиск пользователя по имени пользователя в базе данных
     const sql = "SELECT * FROM users WHERE Username = ?";
     const [results]: any = await db.promise().query(sql, [username]);
 
@@ -29,13 +29,11 @@ export const login = async (
 
     const user = results[0];
 
-    // Проверка пароля
     const isPasswordMatch = await bcrypt.compare(password, user.Password);
     if (!isPasswordMatch) {
       return res.status(401).json({ error: "Authentication failed" });
     }
 
-    // Генерация JWT-токена
     const token = jwt.sign({ userId: user.ID }, JWT_SECRET!, {
       expiresIn: "1h",
     });
@@ -163,14 +161,34 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 };
 
 export const getUserById = async (req: AuthRequest, res: Response) => {
-  // try {
-  //   const user = await User.findById({ _id: req.userId }).lean();
-  //   if (!user) {
-  //     throw new Error(`User ${req.userId}`);
-  //   }
-  //   const { password, ...userWithoutPassword } = user;
-  //   res.status(200).json(userWithoutPassword);
-  // } catch (error) {
-  //   res.status(500).json({ error: "Failed to get user by id" });
-  // }
+  try {
+    const userId = req.userId;
+
+    const sql = `
+      SELECT ID, Username, First_name, Last_name, Email, Phone_number, role, avatar_img
+      FROM users 
+      WHERE ID = ?;
+    `;
+
+    // Используем явное указание типа результата как RowDataPacket[]
+    db.query<RowDataPacket[]>(sql, [userId], (err, results) => {
+      if (err) {
+        console.error("Error fetching user by id:", err);
+        return res.status(500).json({ error: "Failed to get user by id" });
+      }
+      console.log(err);
+
+      if (results.length === 0) {
+        return res
+          .status(404)
+          .json({ error: `User with ID ${userId} not found` });
+      }
+
+      const userWithoutPassword = results[0];
+      res.status(200).json(userWithoutPassword);
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Failed to get user by id" });
+  }
 };
