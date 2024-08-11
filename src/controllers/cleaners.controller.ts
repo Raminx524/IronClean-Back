@@ -93,11 +93,10 @@ export const getReservationsByCleanerId = (
 ): void => {
   const id = req.params.id;
   const sql = `
-    SELECT reservations.*, AVG(reviews.Rating) as avg_rating
+    SELECT reservations.*
     FROM reservations
     LEFT JOIN reviews ON reviews.Posted_ID = reservations.cleaner_id
     WHERE cleaner_id = ?
-    GROUP BY reservations.cleaner_id;
   `;
   db.query(
     sql,
@@ -195,6 +194,28 @@ export const get5TopCleaners = (req: Request, res: Response): void => {
         return;
       }
       res.status(200).json(results);
+    }
+  );
+};
+export const addReservation = (req: Request, res: Response) => {
+  const cleaner_id = req.params.id;
+  const { client_id, start_time, end_time, date } = req.body;
+
+  const sql = `
+    INSERT INTO reservations (cleaner_id, client_id, start_time, end_time, date)
+    VALUES (?, ?, ?, ?, ?);
+  `;
+
+  db.query(
+    sql,
+    [cleaner_id, client_id, start_time, end_time, date],
+    (err: QueryError | null, results: RowDataPacket[], fields: FieldPacket[]) => {
+      if (err) {
+        console.error("Error adding reservation:", err);
+        res.status(500).send("Server error");
+        return;
+      }
+      res.status(201).send("Reservation added successfully");
     }
   );
 };
