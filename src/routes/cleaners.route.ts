@@ -23,5 +23,4 @@ cleanersRoutes.get("/:id/days", getDaysById);
 cleanersRoutes.post("/:id/review", postReviwe);
 cleanersRoutes.delete("/:id/review/:revId", verifyToken, deleteReview);
 
-
 export default cleanersRoutes;
