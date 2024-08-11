@@ -70,7 +70,6 @@ export const login = async (
 //     res.status(500).json({ error: "Login failed" });
 //   }
 // };
-
 export const register = async (req: Request, res: Response): Promise<void> => {
   const {
     username,
@@ -85,44 +84,81 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     summary,
   } = req.body;
 
+  let responseSent = false; // Флаг для отслеживания отправки ответа
+
   try {
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-    const userInsertQuery = `
-      INSERT INTO users (Username, Password, First_name, Last_name, Email, Phone_number, role)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `;
-    const userResult: any = await db
-      .promise()
-      .query(userInsertQuery, [
-        username,
-        hashedPassword,
-        first_name,
-        last_name,
-        email,
-        phone_number,
-        role,
-      ]);
 
-    const userId = userResult[0].insertId;
+    const databaseName = "users";
 
-    if (role === "client") {
-      const clientInsertQuery = `
-        INSERT INTO clients (user_id, Address)
-        VALUES (?, ?)
-      `;
-      await db.promise().query(clientInsertQuery, [userId, address]);
-    } else if (role === "cleaner") {
-      const cleanerInsertQuery = `
-        INSERT INTO cleaners (user_id, Price, Summary)
-        VALUES (?, ?, ?)
-      `;
-      await db.promise().query(cleanerInsertQuery, [userId, price, summary]);
+    // Проверка наличия пользователя по имени пользователя
+    let regValidate = `SELECT * FROM ${databaseName} WHERE Username = ?`;
+    let [result]: any[] = await db.promise().query(regValidate, [username]);
+
+    if (result.length > 0) {
+      res.status(400).json({ error: "Username already exists" });
+      responseSent = true;
     }
 
-    res.status(201).send("User registered successfully");
+    if (!responseSent) {
+      regValidate = `SELECT * FROM ${databaseName} WHERE Email = ?`;
+      [result] = await db.promise().query(regValidate, [email]);
+
+      if (result.length > 0) {
+        res.status(400).json({ error: "Email already exists" });
+        responseSent = true;
+      }
+    }
+
+    if (!responseSent) {
+      regValidate = `SELECT * FROM ${databaseName} WHERE Phone_number = ?`;
+      [result] = await db.promise().query(regValidate, [phone_number]);
+
+      if (result.length > 0) {
+        res.status(400).json({ error: "Phone number already exists" });
+        responseSent = true;
+      }
+    }
+
+    if (!responseSent) {
+      const userInsertQuery = `
+        INSERT INTO users (Username, Password, First_name, Last_name, Email, Phone_number, role)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `;
+      const [userResult]: any = await db
+        .promise()
+        .query(userInsertQuery, [
+          username,
+          hashedPassword,
+          first_name,
+          last_name,
+          email,
+          phone_number,
+          role,
+        ]);
+
+      const userId = userResult.insertId;
+
+      if (role === "client") {
+        const clientInsertQuery = `
+          INSERT INTO clients (user_id, Address)
+          VALUES (?, ?)
+        `;
+        await db.promise().query(clientInsertQuery, [userId, address]);
+      } else if (role === "cleaner") {
+        const cleanerInsertQuery = `
+          INSERT INTO cleaners (user_id, Price, Summary)
+          VALUES (?, ?, ?)
+        `;
+        await db.promise().query(cleanerInsertQuery, [userId, price, summary]);
+      }
+      res.status(201).send("User registered successfully");
+    }
   } catch (err) {
-    console.error("Error registering user:", err);
-    res.status(500).send("Server error");
+    if (!responseSent) {
+      console.error("Error registering user:", err);
+      res.status(500).send("Server error");
+    }
   }
 };
 
