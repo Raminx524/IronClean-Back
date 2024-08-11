@@ -115,6 +115,59 @@ export const getReservationsByCleanerId = (
     }
   );
 };
+export const getDaysById = (req: Request, res: Response): void => {
+  const id = req.params.id;
+  const sql = `SELECT Days FROM days WHERE id IN (
+    SELECT Day_ID 
+    FROM work_days
+    WHERE User_ID = ?)
+  `;
+
+  db.query(
+    sql,
+    [id],
+    (
+      err: QueryError | null,
+      results: RowDataPacket[],
+      fields: FieldPacket[]
+    ) => {
+      if (err) {
+        console.error("Error fetching days by cleaner id:", err);
+        res.status(500).send("Server error");
+        return;
+      }
+
+      // Transform the results into an array of strings
+      const days = results.map((row: RowDataPacket) => row.Days);
+
+      res.status(200).json(days);
+    }
+  );
+};
+
+export const getReservationsByDate = (req: Request, res: Response): void => {
+  const { date } = req.body;
+  const id = req.params.id;
+  const sql = `select Start_time, End_time from reservations where Cleaner_ID= ? and date = ?`;
+  console.log(date);
+
+  db.query(
+    sql,
+    [id, date],
+    (
+      err: QueryError | null,
+      results: RowDataPacket[],
+      fields: FieldPacket[]
+    ) => {
+      if (err) {
+        console.error("Error fetching reservations by date:", err);
+        res.status(500).send("Server error");
+        return;
+      }
+      res.status(200).json(results);
+    }
+  );
+};
 
 export const get5TopCleaners = (req: Request, res: Response): void => {
   const sql = `
