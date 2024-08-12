@@ -1,6 +1,7 @@
 import { db } from "../app";
 import { Request, Response } from "express";
 import { RowDataPacket, QueryError, FieldPacket } from "mysql2";
+import { AuthRequest } from "../middleware/auth.middleware";
 
 export const getAllCleaners = (req: Request, res: Response): void => {
   const sql = `
@@ -146,7 +147,7 @@ export const getDaysById = (req: Request, res: Response): void => {
 };
 
 export const getReservationsByDate = (req: Request, res: Response): void => {
-  const { date } = req.body;
+  const { date } = req.query;
   const id = req.params.id;
   const sql = `select Start_time, End_time from reservations where Cleaner_ID= ? and date = ?`;
   console.log(date);
@@ -197,24 +198,37 @@ export const get5TopCleaners = (req: Request, res: Response): void => {
     }
   );
 };
-export const addReservation = (req: Request, res: Response) => {
-  const cleaner_id = req.params.id;
-  const { client_id, start_time, end_time, date } = req.body;
+export const addReservation = (req: AuthRequest, res: Response) => {
+  const userId = req.userId;
+  const { id: cleaner_id } = req.params;
+  const { start_time, end_time, date } = req.body;
 
   const sql = `
     INSERT INTO reservations (cleaner_id, client_id, start_time, end_time, date)
     VALUES (?, ?, ?, ?, ?);
   `;
+  console.log(
+    { cleaner_id },
+    { userId },
+    { start_time },
+    { end_time },
+    { date }
+  );
 
   db.query(
     sql,
-    [cleaner_id, client_id, start_time, end_time, date],
-    (err: QueryError | null, results: RowDataPacket[], fields: FieldPacket[]) => {
+    [cleaner_id, userId, start_time, end_time, date],
+    (
+      err: QueryError | null,
+      results: RowDataPacket[],
+      fields: FieldPacket[]
+    ) => {
       if (err) {
         console.error("Error adding reservation:", err);
         res.status(500).send("Server error");
         return;
       }
+
       res.status(201).send("Reservation added successfully");
     }
   );
