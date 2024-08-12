@@ -14,6 +14,7 @@ import { verifyToken } from "../middleware/auth.middleware";
 const cleanersRoutes = Router();
 
 cleanersRoutes.get("/", getAllCleaners);
+
 cleanersRoutes.get("/top", get5TopCleaners);
 cleanersRoutes.get("/:id", getCleanerById);
 cleanersRoutes.get("/:id/reviews", getReviewsByCleanerId);
