@@ -7,6 +7,7 @@ import {
   getReservationsByCleanerId,
   getReservationsByDate,
   getReviewsByCleanerId,
+  addReservation,
 } from "../controllers/cleaners.controller";
 import { deleteReview, postReviwe } from "../controllers/reviwes.controllers";
 import { verifyToken } from "../middleware/auth.middleware";
@@ -19,6 +20,7 @@ cleanersRoutes.get("/top", get5TopCleaners);
 cleanersRoutes.get("/:id", getCleanerById);
 cleanersRoutes.get("/:id/reviews", getReviewsByCleanerId);
 cleanersRoutes.get("/:id/reservations", getReservationsByCleanerId);
+cleanersRoutes.post("/:id/reservations", verifyToken, addReservation);
 cleanersRoutes.get("/:id/reservations/reserv", getReservationsByDate);
 cleanersRoutes.get("/:id/days", getDaysById);
 cleanersRoutes.post("/:id/review", postReviwe);
