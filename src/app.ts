@@ -6,6 +6,7 @@ import path from "path";
 import mysql2 from "mysql2";
 import cleanersRoutes from "./routes/cleaners.route";
 import dotenv from "dotenv";
+import notificationRouter from "./routes/notifications.route";
 
 dotenv.config();
 const app: Application = express();
@@ -28,6 +29,8 @@ async function main() {
     app.use("/api/user", userRoutes);
 
     app.use("/api/cleaners", cleanersRoutes);
+
+    app.use("/api/notification", notificationRouter);
   });
 }
 
